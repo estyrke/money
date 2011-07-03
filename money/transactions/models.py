@@ -1,5 +1,6 @@
 from django.db import models
 from decimal import Decimal
+import re
 
 class Account(models.Model):
     number = models.CharField(max_length=30, unique=True)
@@ -18,11 +19,12 @@ class Account(models.Model):
                 continue
             if len(fields)< 5 or len(fields) > 6:
                 raise ValueError("Wrong number of fields, expected 5 or 6:", fields)
-            self.transaction_set.create(transaction_date=fields[0],
-                                        currency_date=fields[1],
-                                        reference=int(fields[2]),
-                                        text=fields[3],
-                                        value=Decimal(fields[4].replace(",", ".")))
+            t = self.transaction_set.create(transaction_date=fields[0],
+                                            currency_date=fields[1],
+                                            reference=int(fields[2]),
+                                            text=fields[3],
+                                            value=Decimal(fields[4].replace(",", ".")))
+            t.auto_tag()
         self.save()
         
     def __unicode__(self):
@@ -31,6 +33,9 @@ class Account(models.Model):
 class Category(models.Model):
     name = models.CharField(max_length=100)
     parent = models.ForeignKey('self', null=True, blank=True)
+    
+    def __unicode__(self):
+        return (self.parent.name if self.parent else "") + "/" + self.name
     
 class Transaction(models.Model):
     transaction_date = models.DateField()
@@ -43,10 +48,16 @@ class Transaction(models.Model):
     
     class Meta:
         ordering = ['account', 'transaction_date', 'id']
+        unique_together = ('reference', 'transaction_date', 'text')
         
     def __unicode__(self):
         return str(self.currency_date) + " " + str(self.value) + " " + self.text
     
+    def auto_tag(self):
+        #TODO: is there a better way?
+        matching_tags = [mapping.category for mapping in CategoryMapping.objects.all() if re.match(mapping.matcher, self.text, re.UNICODE | re.IGNORECASE)]
+        self.categories.add(*matching_tags)
+        
 class CategoryMapping(models.Model):
     matcher = models.CharField(max_length=100)
     category = models.ForeignKey(Category)

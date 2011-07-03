@@ -33,9 +33,25 @@
   fields:
     name: "Livsmedel"
     parent: 5
-    
+- model: transactions.category
+  pk: 9
+  fields:
+    name: "Lön"
+        
 - model: transactions.account
   pk: 1
   fields:
     number: "12345"
     name: "test"
+    
+- model: transactions.categorymapping
+  pk: 1
+  fields:
+    matcher: "Lön"
+    category: 9
+    
+- model: transactions.categorymapping
+  pk: 2
+  fields:
+    matcher: "AB STÅNGASTADEN"
+    category: 1

@@ -1,9 +1,15 @@
 {% if transaction_list %}
-    <ul>
+    <table>
     {% for transaction in transaction_list %}
-        <li><a href="/accounts/{{ transaction.account.id }}/transactions/{{ transaction.id }}">{{ transaction.text }}</a></li>
+        <tr>
+            <td>{{ transaction.transaction_date }}</td>
+            <td>{{ transaction.currency_date }}</td>
+            <td>{{ transaction.reference }}</td>
+            <td>{{ transaction.text }}</td>
+            <td>{{ transaction.categories.all }}</td>
+        </tr>
     {% endfor %}
-    </ul>
+    </table>
 {% else %}
     <p>No transactions are available.</p>
 {% endif %}

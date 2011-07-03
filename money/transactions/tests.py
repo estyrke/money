@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 from django.test import TestCase
-from transactions.models import Account
+from transactions.models import Account, Transaction, CategoryMapping, Category
 from django.utils.datetime_safe import date
 from decimal import Decimal
 
@@ -56,3 +56,47 @@ class AccountImportTest(TestCase):
                             "2011-03-24\t2011-03-24\t5484478982\tCOOP NARA VA/11-03-22\t-280,22\t166,98\n")
         self.assertQuerysetEqual(account.transaction_set.all(), expected_transactions, transaction_to_dict)
         
+class TransactionTests(TestCase):
+    fixtures = ['transaction_testdata']
+    
+    def given_a_transaction(self, text):
+        t = Transaction(transaction_date=date.today(), currency_date=date.today(), reference=0, account_id=0, value=0, text=text)
+        t.save()
+        return t
+    
+    def given_a_tag_matcher(self, matcher, tag):
+        m = CategoryMapping(matcher=matcher, category=tag)
+        m.save()
+        return m
+    
+    def given_a_category(self, name):
+        c = Category(name=name)
+        c.save()
+        return c
+    
+    def test_auto_tag_match(self):
+        category = self.given_a_category("blabla")
+        t = self.given_a_transaction("Something that matches")
+        self.given_a_tag_matcher("Something", category)
+        
+        t.auto_tag()
+        
+        self.assertQuerysetEqual(t.categories.all(), [repr(category)])
+            
+    def test_auto_tag_match_case_insensitive(self):
+        category = self.given_a_category("blabla")
+        t = self.given_a_transaction(u"Räksmörgås that matches")
+        self.given_a_tag_matcher(u"RÄKSMÖRGÅS", category)
+        
+        t.auto_tag()
+        
+        self.assertQuerysetEqual(t.categories.all(), [repr(category)])
+            
+    def test_auto_tag_no_match(self):
+        category = self.given_a_category("blabla")
+        t = self.given_a_transaction("Something that matches")
+        self.given_a_tag_matcher("Nothing", category)
+        
+        t.auto_tag()
+        
+        self.assertQuerysetEqual(t.categories.all(), [])
