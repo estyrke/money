@@ -1,3 +1,6 @@
+{% extends "transactions/base.html" %}
+
+{% block content %}
 {% if transaction_list %}
     <table>
     {% for transaction in transaction_list %}
@@ -13,3 +16,4 @@
 {% else %}
     <p>No transactions are available.</p>
 {% endif %}
+{% endblock %}

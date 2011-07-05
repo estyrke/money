@@ -1,9 +1,15 @@
-{% if object_list %}
+{% extends "transactions/base.html" %}
+
+{% block content %}
+
+{% if account_list %}
     <ul>
-    {% for account in object_list %}
-        <li><a href="/money/accounts/{{ account.id }}/transactions">{{ account.account_number }}</a></li>
+    {% for account in account_list %}
+        <li><a href="{% url account_transactions account_id=account.id %}">{{ account.number }}</a></li>
     {% endfor %}
     </ul>
 {% else %}
     <p>No accounts are available.</p>
 {% endif %}
+
+{% endblock %}

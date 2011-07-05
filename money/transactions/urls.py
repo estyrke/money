@@ -9,7 +9,7 @@ from transactions.views import AccountTransactionsView, importTransactions
 urlpatterns = patterns('',
     # Examples:
     # url(r'^$', 'money.views.home', name='home'),
-    url(r'^$', ListView.as_view(model=Account)),
+    url(r'^$', ListView.as_view(model=Account), name='home'),
     url(r'^accounts/(?P<pk>\d+)/$', DetailView.as_view(model=Account)),
     url(r'^accounts/(?P<account_id>\d+)/transactions$', AccountTransactionsView.as_view(),
         name = 'account_transactions'),
