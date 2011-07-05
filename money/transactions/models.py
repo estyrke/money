@@ -26,7 +26,8 @@ class Account(models.Model):
                                             value=Decimal(fields[4].replace(",", ".")))
             t.auto_tag()
         self.save()
-        
+    import_data.alters_data = True
+    
     def __unicode__(self):
         return self.number + " (" + self.name + ")"
     
@@ -57,6 +58,7 @@ class Transaction(models.Model):
         #TODO: is there a better way?
         matching_tags = [mapping.category for mapping in CategoryMapping.objects.all() if re.match(mapping.matcher, self.text, re.UNICODE | re.IGNORECASE)]
         self.categories.add(*matching_tags)
+    auto_tag.alters_data = True
         
 class CategoryMapping(models.Model):
     matcher = models.CharField(max_length=100)
