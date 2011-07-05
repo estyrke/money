@@ -1,3 +1,4 @@
 *.class
 *.pyc
 *.pyo
+money/settings.py
