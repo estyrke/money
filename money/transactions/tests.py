@@ -4,6 +4,7 @@ from django.test import TestCase
 from transactions.models import Account, Transaction, CategoryMapping, Category
 from django.utils.datetime_safe import date
 from decimal import Decimal
+from django.core.exceptions import ValidationError
 
 def transaction_to_dict(transaction, keys=['account_id', 'transaction_date', 'currency_date', 'reference', 'text', 'value']):
     return dict([(key, getattr(transaction, key)) for key in keys])
@@ -57,46 +58,55 @@ class AccountImportTest(TestCase):
         self.assertQuerysetEqual(account.transaction_set.all(), expected_transactions, transaction_to_dict)
         
 class TransactionTests(TestCase):
-    fixtures = ['transaction_testdata']
     
+    def setUp(self):
+        self.cat1 = Category(name="cat1")
+        self.cat1.save()
+        self.cat2 = Category(name="cat2")
+        self.cat2.save()
+        CategoryMapping(matcher=u"^Something", category=self.cat1).save()
+        CategoryMapping(matcher=u"Räksmörgås", category=self.cat2).save()
+        
     def given_a_transaction(self, text):
         t = Transaction(transaction_date=date.today(), currency_date=date.today(), reference=0, account_id=0, value=0, text=text)
-        t.save()
         return t
     
-    def given_a_tag_matcher(self, matcher, tag):
-        m = CategoryMapping(matcher=matcher, category=tag)
-        m.save()
-        return m
-    
-    def given_a_category(self, name):
-        c = Category(name=name)
-        c.save()
-        return c
-    
     def test_auto_tag_match(self):
-        category = self.given_a_category("blabla")
-        t = self.given_a_transaction("Something that matches")
-        self.given_a_tag_matcher("Something", category)
+        t = self.given_a_transaction(u"Something that matches")
         
         t.auto_tag()
         
-        self.assertQuerysetEqual(t.categories.all(), [repr(category)])
+        self.assertEqual(t.category, self.cat1)
+
+    def test_auto_tag_unanchored_matches_middle(self):
+        t = self.given_a_transaction(u"With a räksmörgås in the middle")
+        
+        t.auto_tag()
+        
+        self.assertEqual(t.category, self.cat2)
+
+    def test_auto_tag_anchored_doesnt_match_middle(self):
+        t = self.given_a_transaction(u"With a something in the middle")
+        
+        t.auto_tag()
+        
+        self.assertEqual(t.category, None)
             
     def test_auto_tag_match_case_insensitive(self):
-        category = self.given_a_category("blabla")
-        t = self.given_a_transaction(u"Räksmörgås that matches")
-        self.given_a_tag_matcher(u"RÄKSMÖRGÅS", category)
+        t = self.given_a_transaction(u"RÄKSMÖRGÅS that matches")
         
         t.auto_tag()
         
-        self.assertQuerysetEqual(t.categories.all(), [repr(category)])
+        self.assertEqual(t.category, self.cat2)
             
     def test_auto_tag_no_match(self):
-        category = self.given_a_category("blabla")
-        t = self.given_a_transaction("Something that matches")
-        self.given_a_tag_matcher("Nothing", category)
+        t = self.given_a_transaction(u"Nothing that matches")
         
         t.auto_tag()
         
-        self.assertQuerysetEqual(t.categories.all(), [])
+        self.assertEqual(t.category, None)
+        
+    def test_auto_tag_multiple_matches_fail(self):
+        t = self.given_a_transaction(u"Something that matches räksmörgås")
+        
+        self.assertRaises(ValidationError, t.auto_tag)

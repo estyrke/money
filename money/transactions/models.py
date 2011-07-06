@@ -1,6 +1,7 @@
 from django.db import models
 from decimal import Decimal
 import re
+from django.core.exceptions import ValidationError
 
 class Account(models.Model):
     number = models.CharField(max_length=30, unique=True)
@@ -45,7 +46,7 @@ class Transaction(models.Model):
     account = models.ForeignKey(Account)
     text = models.CharField(max_length=100)
     value = models.DecimalField(decimal_places=2, max_digits=10)
-    categories = models.ManyToManyField(Category)
+    category = models.ForeignKey(Category, null=True)
     
     class Meta:
         ordering = ['account', 'transaction_date', 'id']
@@ -56,11 +57,19 @@ class Transaction(models.Model):
     
     def auto_tag(self):
         #TODO: is there a better way?
-        matching_tags = [mapping.category for mapping in CategoryMapping.objects.all() if re.match(mapping.matcher, self.text, re.UNICODE | re.IGNORECASE)]
-        self.categories.add(*matching_tags)
+        matching_tags = [mapping.category for mapping in CategoryMapping.objects.all() if mapping.matches(self.text)]
+        if len(matching_tags) == 1:
+            self.category = matching_tags[0]
+        elif len(matching_tags) != 0:
+            raise ValidationError("Multiple categories match transaction %s: %s" % (self.text, matching_tags))
     auto_tag.alters_data = True
         
 class CategoryMapping(models.Model):
     matcher = models.CharField(max_length=100)
     category = models.ForeignKey(Category)
 
+    def matches(self, text):
+        return re.search(self.matcher, text, re.UNICODE | re.IGNORECASE) is not None
+
+    def __unicode__(self):
+        return "/%s/ -> %s" % (self.matcher, self.category)
