@@ -1,20 +1,22 @@
 
-from django.conf.urls.defaults import patterns, url
-from django.views.generic.list import ListView
-from transactions.models import Transaction, Account
-from django.views.generic.detail import DetailView
-from transactions.views import AccountTransactionsView, importTransactions
+from django.conf.urls.defaults import patterns, url, include
+from tastypie.api import Api
+from transactions.api import TransactionResource, AccountResource, \
+    CategoryResource
 
+v1_api = Api(api_name='v1')
+v1_api.register(TransactionResource())
+v1_api.register(AccountResource())
+v1_api.register(CategoryResource())
 
 urlpatterns = patterns('',
     # Examples:
     # url(r'^$', 'money.views.home', name='home'),
-    url(r'^$', ListView.as_view(model=Account), name='home'),
-    url(r'^accounts/(?P<pk>\d+)/$', DetailView.as_view(model=Account)),
-    url(r'^accounts/(?P<account_id>\d+)/transactions$', AccountTransactionsView.as_view(),
-        name = 'account_transactions'),
-    url(r'^transactions/$', ListView.as_view(model=Transaction)),
-    url(r'^transactions/(?P<pk>\d+)/$', DetailView.as_view(model=Transaction)),
-    url(r'^accounts/(?P<account_id>\d+)/import/$', importTransactions),
+    url(r'^$',
+        'django.views.generic.simple.direct_to_template',
+        {'template':'transactions/base.html'},
+        name="home"),
+    
+    url(r'^api/', include(v1_api.urls)),
 )
 
