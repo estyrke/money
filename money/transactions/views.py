@@ -1,10 +1,9 @@
+from django.http import HttpResponse, HttpResponseNotAllowed, \
+    HttpResponseBadRequest
+from django.shortcuts import get_object_or_404
 from django.views.generic.list import ListView
-from django.shortcuts import get_object_or_404, render_to_response
-from transactions.models import Account, Transaction
-from django.http import HttpResponseRedirect
 from transactions.forms import ImportForm
-from django.template.context import RequestContext
-from django.core.urlresolvers import reverse
+from transactions.models import Account, Transaction
 
 class AccountTransactionsView(ListView):
     context_object_name = "transaction_list"
@@ -18,13 +17,11 @@ def importTransactions(request, account_id):
     if request.method == 'POST': # If the form has been submitted...
         form = ImportForm(request.POST) # A form bound to the POST data
         if form.is_valid(): # All validation rules pass
-            account.import_data(form.cleaned_data['import_data'])
-            return HttpResponseRedirect(reverse('account_transactions', kwargs={'account_id': account_id})) # Redirect after POST
+            try:
+                account.import_data(form.cleaned_data['import_data'])
+                return HttpResponse(status=201)
+            except ValueError as e:
+                return HttpResponseBadRequest(content=e.args)
     else:
-        form = ImportForm() # An unbound form
-
-    return render_to_response('transactions/importTransactions.html', {
-                                                                       'account': account,
-                                                                       'form': form,
-                                                                       },
-                              context_instance=RequestContext(request))
+        return HttpResponseNotAllowed(['POST']);
+    

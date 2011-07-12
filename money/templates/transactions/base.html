@@ -1,58 +1,80 @@
 {% load verbatim %}
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<head>
-    <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
-    <link rel="stylesheet" 
-          href="http://yui.yahooapis.com/3.2.0/build/cssreset/reset-min.css">
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/style.css" />
- 
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
-    <script src="http://cachedcommons.org/cache/underscore/1.1.0/javascripts/underscore-min.js">
-    </script>
-    <script src="{{STATIC_URL}}js/ICanHaz.min.js"></script>
-    <script src="{{STATIC_URL}}js/backbone.js"></script>
-    <script>
-      ACCOUNT_API = "{%url api_dispatch_list resource_name='account' api_name='v1' %}";
-    </script>
-    <script src="{{STATIC_URL}}js/transactions.js"></script>
-    <title>{% block title %}Money{% endblock %}</title>
+    <head>
+        <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
+        <link rel="stylesheet"
+        href="http://yui.yahooapis.com/3.2.0/build/cssreset/reset-min.css">
+        <link rel="stylesheet" href="{{ STATIC_URL }}css/style.css" />
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
+        <script src="http://cachedcommons.org/cache/underscore/1.1.0/javascripts/underscore-min.js"></script>
+        <script src="{{STATIC_URL}}js/ICanHaz.min.js"></script>
+        <script src="{{STATIC_URL}}js/backbone.js"></script>
+        <script>
+            ACCOUNT_API = "{%url api_dispatch_list resource_name='account' api_name='v1' %}";
+            TRANSACTION_API = "{%url api_dispatch_list resource_name='transaction' api_name='v1' %}";
+            CSRF_TOKEN = "{{csrf_token}}";
+        </script>
+        <script src="{{STATIC_URL}}js/transactions.js"></script>
+        <title>{% block title %}Money{% endblock %}</title>
         {%verbatim%}
-    <script type="text/html" id="accountTemplate">
-      <span>{{name}}</span>
-      <span>{{number}}</span>
-    </script>
-    {%endverbatim%}
+        <script type="text/html" id="accountTemplate">
+            <a href="#accounts/{{id}}">{{name}} ({{number}})</a>
+        </script>
+        <script type="text/html" id="accountsTemplate">
+            <h2>Accounts</h2>
+            <ul id="accounts">
+            </ul>
+            <div id="input">
+                <p><strong>Create an account</strong></p>
+                <label for="name">Name:</label><input type="text" id="name" />
+                <label for="number">Number:</label><input type="text" id="number" />
+                <button id="createAccount">Create account</button>
+            </div>
+        </script>
+        <script type="text/html" id="transactionTemplate">
+            <td>{{transaction_date}}</td>
+            <td>{{text}}</td>
+            <td>{{value}}</td>
+        </script>
+        <script type="text/html" id="transactionsTemplate">
+            <h2>Transactions for {{account_id}}</h2>
+            <table id="transactions">
+            </table>
+            <div id="input">
+                <p><strong>Import transactions</strong></p>
+                <textarea id="import_data" />
+                <button id="import">Import</button>
+            </div>
+        </script>
+        {%endverbatim%}
+    </head>
+    <body>
+        <div id="header">
+            <h1>Money :: {{ title }}</h1>
+        </div>
+        <div id="sidebar">
+            <h3>Navigation</h3>
+            {% block sidebar %}
+            <ul>
+                <li>
+                    <a href="{% url home %}#accounts">Home</a>
+                </li>
+                <li>
+                    <a href="{% url admin:index %}">Admin</a>
+                </li>
+            </ul>
+            {% endblock %}
+        </div>
 
-</head>
-<body>
-    <div id="header"><h1>Money :: {{ title }}</h1></div>
-    <div id="sidebar">
-        <h3>Navigation</h3>
-        {% block sidebar %}
-        <ul>
-            <li><a href="{% url home %}">Home</a></li>
-            <li><a href="{% url admin:index %}">Admin</a></li>
-        </ul>
-        {% endblock %}
-    </div>
-
-    <div id="content">
-            <div id="app">
-      <div id="input">
-        <strong>Create an account</strong>
-        <input type="text" id="name" />
-        <input type="text" id="number" />
-        <button id="createAccount">Create account</button>
-      </div>
-      <h2>Accounts</h2>
-      <ul id="accounts">
-      </ul>
-    </div>
-        {% block content %}{% endblock %}
-    </div>
-    <div id="footer"></div>
-</body>
+        <div id="content">
+            <div id="app"/>
+                {% block content %}{% endblock %}
+            </div>
+            <div id="footer">
+            </div>
+    </body>
 </html>

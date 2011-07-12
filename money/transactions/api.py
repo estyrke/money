@@ -19,8 +19,8 @@ class CategoryResource(ModelResource):
         resource_name = 'category'
 
 class TransactionResource(ModelResource):
-    account = fields.ForeignKey(AccountResource, 'account')
-    category = fields.ForeignKey(CategoryResource, 'category')
+    account = fields.ToOneField(AccountResource, 'account')
+    category = fields.ToOneField(CategoryResource, 'category', null=True)
 
     class Meta(BaseMeta):
         queryset = Transaction.objects.all()

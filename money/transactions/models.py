@@ -15,10 +15,10 @@ class Account(models.Model):
         lines = data.split('\n')
         lines.reverse()
         for line in lines:
-            fields = line.split("\t")
-            if len(fields) == 1:
+            if line.strip() == "":
                 continue
-            if len(fields)< 5 or len(fields) > 6:
+            fields = line.split("\t")
+            if len(fields) < 5 or len(fields) > 6:
                 raise ValueError("Wrong number of fields, expected 5 or 6:", fields)
             t = self.transaction_set.create(transaction_date=fields[0],
                                             currency_date=fields[1],
