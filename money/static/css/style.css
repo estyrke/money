@@ -55,3 +55,12 @@
 #footer {
     clear: both;
 }
+
+table td {
+    padding: 2px;
+    border: 1px dotted black;
+}
+
+td.delete {
+    color: red;
+}

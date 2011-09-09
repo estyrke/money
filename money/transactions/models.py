@@ -37,7 +37,7 @@ class Category(models.Model):
     parent = models.ForeignKey('self', null=True, blank=True)
     
     def __unicode__(self):
-        return (self.parent.name if self.parent else "") + "/" + self.name
+        return (self.parent.__unicode__() if self.parent else "") + "/" + self.name
     
 class Transaction(models.Model):
     transaction_date = models.DateField()
@@ -66,7 +66,7 @@ class Transaction(models.Model):
         
 class CategoryMapping(models.Model):
     matcher = models.CharField(max_length=100)
-    category = models.ForeignKey(Category)
+    category = models.ForeignKey(Category, related_name="mapping")
 
     def matches(self, text):
         return re.search(self.matcher, text, re.UNICODE | re.IGNORECASE) is not None

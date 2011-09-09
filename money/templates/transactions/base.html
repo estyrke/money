@@ -6,7 +6,7 @@
     <head>
         <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
         <link rel="stylesheet"
-        href="http://yui.yahooapis.com/3.2.0/build/cssreset/reset-min.css">
+              href="http://yui.yahooapis.com/3.2.0/build/cssreset/reset-min.css"/>
         <link rel="stylesheet" href="{{ STATIC_URL }}css/style.css" />
 
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
@@ -16,8 +16,12 @@
         <script>
             ACCOUNT_API = "{%url api_dispatch_list resource_name='account' api_name='v1' %}";
             TRANSACTION_API = "{%url api_dispatch_list resource_name='transaction' api_name='v1' %}";
+            CATEGORY_API = "{%url api_dispatch_list resource_name='category' api_name='v1' %}";
+            CATEGORY_MAPPING_API = "{%url api_dispatch_list resource_name='category_mapping' api_name='v1' %}";
             CSRF_TOKEN = "{{csrf_token}}";
         </script>
+        <script src="{{STATIC_URL}}js/models.js"></script>
+        <script src="{{STATIC_URL}}js/views.js"></script>
         <script src="{{STATIC_URL}}js/transactions.js"></script>
         <title>{% block title %}Money{% endblock %}</title>
         {%verbatim%}
@@ -39,6 +43,11 @@
             <td>{{transaction_date}}</td>
             <td>{{text}}</td>
             <td>{{value}}</td>
+        </script>
+        <script type="text/html" id="categoryTemplate">
+            <td class="delete">X</td>
+            <td>{{name}}</td>
+            <td>{{mapping_string}}</td>
         </script>
         <script type="text/html" id="transactionsTemplate">
             <h2>Transactions for {{account_id}}</h2>
@@ -64,6 +73,9 @@
                     <a href="{% url home %}#accounts">Home</a>
                 </li>
                 <li>
+                    <a href="{% url home %}#categories">Categories</a>
+                </li>
+                <li>
                     <a href="{% url admin:index %}">Admin</a>
                 </li>
             </ul>
@@ -71,10 +83,21 @@
         </div>
 
         <div id="content">
-            <div id="app"/>
-                {% block content %}{% endblock %}
+            <div id="app">
             </div>
-            <div id="footer">
+            <div id="categories">
+                <table id="category_list">
+                </table>
+                <input type="text" id="category_name"/>
+                <button id="add_category">Add Category</button>
+                <input type="text" id="mapping_regex"/>
+                <select id="mapping_category"></select>
+                <button id="add_mapping">Add Mapping</button>
             </div>
+            
+            {% block content %}{% endblock %}
+        </div>
+        <div id="footer">
+        </div>
     </body>
 </html>
